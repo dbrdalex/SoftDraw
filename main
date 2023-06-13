@@ -1,0 +1,1403 @@
+import tkinter
+from tkinter import *
+from tkinter import messagebox
+from tkinter.filedialog import askopenfilename
+import math
+
+
+class MyWindow(Tk):
+    zoom = 10
+    option = 0
+    global FILE_NB
+    FILE_NB = 0
+    global FILE_TAB, CAN_TAB
+    FILE_TAB, CAN_TAB = [], []
+
+
+    def __init__(self):
+        Tk.__init__(self)
+        self.create_menu_bar()
+
+        # TODO: Fill the content of the window
+
+        width = self.winfo_screenwidth()
+        height = self.winfo_screenheight()
+        # setting tkinter window size
+        self.geometry("%dx%d" % (width, height))
+        # self.attributes('-fullscreen')
+        self.title("Soft CNC")
+        self.iconbitmap('C:/Users/Alexis/Pictures/CNC_2.ico')
+
+        # frame = Frame(self,width=500,height=500,bd=5,highlightbackground='black',highlightcolor='black',highlightthickness='4')
+        # frame.pack()
+
+    # definition de la bar de menu
+
+    def create_menu_bar(self):
+        menu_bar = Menu(self)
+
+        menu_file = Menu(menu_bar, tearoff=0)
+        menu_file.add_command(label="New", command=self.new_file)
+        menu_file.add_command(label="Open", command=self.open_file)
+        menu_file.add_command(label="Save", command=self.save_file)
+        menu_file.add_command(label="Export", command=self.export_file)
+        menu_file.add_separator()
+        menu_file.add_command(label="Exit", command=self.quit)
+        menu_bar.add_cascade(label="File", menu=menu_file)
+
+        menu_edit = Menu(menu_bar, tearoff=0)
+        menu_edit.add_command(label="Undo", command=self.undo_act)
+        menu_edit.add_command(label="Zoom+", command=self.zoom1)
+        menu_edit.add_command(label="Zoom-", command=self.zoom2)
+        menu_edit.add_separator()
+        menu_edit.add_command(label="Copy", command=self.copy_object)
+        menu_edit.add_command(label="Cut", command=self.cut_object2)
+        menu_edit.add_command(label="Paste", command=self.paste_object)
+        menu_bar.add_cascade(label="Edit", menu=menu_edit)
+
+        menu_draw = Menu(menu_bar, tearoff=0)
+        menu_draw.add_command(label="Ligne continue", command=self.add_line)
+        menu_draw.add_command(label="segment", command=self.add_segment)
+
+        menu_cercle = Menu(menu_file, tearoff=0)
+        menu_cercle.add_command(label="Par diamètre", command=self.add_cercle_diam)
+        menu_cercle.add_command(label="Par centre/rayon", command=self.add_cercle_centre)
+        menu_cercle.add_command(label="Par trois points", command=self.add_cercle_3pt)
+        menu_draw.add_cascade(label="Cercle", underline=0, menu=menu_cercle)
+
+        menu_pignon = Menu(menu_file, tearoff=0)
+        menu_pignon.add_command(label="Par variation du module", command=self.add_pignon_m_out)
+        menu_pignon.add_command(label="Par nombre de dent", command=self.add_pignon_z_out)
+        menu_draw.add_cascade(label="Pignon", underline=0, menu=menu_pignon)
+
+        menu_draw.add_command(label="rectangle", command=self.add_rectangle)
+        menu_draw.add_command(label="drilling", command=self.add_drilling)
+        menu_bar.add_cascade(label="Draw", menu=menu_draw)
+
+        menu_specification = Menu(menu_bar, tearoff=0)
+        # menu_specification.add_command(label="segment", command=self.add_segment)
+        # menu_specification.add_command(label="arc", command=self.add_arc)
+        # menu_specification.add_command(label="rectangle", command=self.add_rectangle)
+        # menu_specification.add_command(label="drilling", command=self.add_drilling)
+        menu_bar.add_cascade(label="Specification", menu=menu_specification)
+
+        menu_help = Menu(menu_bar, tearoff=0)
+        menu_help.add_command(label="About", command=self.do_about)
+        menu_bar.add_cascade(label="Help", menu=menu_help)
+
+        self.config(menu=menu_bar)
+
+    def open_file(self):
+        file = askopenfilename(title="Choose the file to open",
+                               filetypes=[("PNG image", ".png"), ("GIF image", ".gif"), ("All files", ".*")])
+        print(file)
+
+    def do_something(self):
+        print("Menu clicked")
+
+    def new_file(self):
+        global FILE_NB, FILE_TAB, CAN_TAB
+        #if FILE_NB >= 1:
+
+
+        FILE_NB = FILE_NB + 1
+        print("New file nb: ",FILE_NB)
+        self.zoom = 10
+        CAN_TAB.append(cannevas())
+        CAN_TAB[FILE_NB - 1].initialisation()
+        FILE_TAB.append((Button(fen_frame.cadre, text='file'+str(FILE_NB), command=window.do_something),
+                         Button(fen_frame.cadre, text='x', command=lambda:[FILE_TAB[FILE_NB-1][0].pack_forget(),
+                        FILE_TAB[FILE_NB - 1][1].pack_forget(),can.pack_forget()])))
+        FILE_TAB[FILE_NB-1][0].pack(side=LEFT)
+        FILE_TAB[FILE_NB - 1][1].pack(side=LEFT)
+
+
+    def export_file(self):
+        print("Export file")
+
+    def save_file(self):
+        print("Save file")
+
+    def exit_file(self):
+        print("Exit file")
+
+    def undo_act(self):
+        print("Undo file")
+
+    def zoom1(self):
+        self.zoom = self.zoom + 1
+        print('Zoom = ', self.zoom)
+
+    def zoom2(self):
+        self.zoom = self.zoom - 1
+        print('Zoom = ', self.zoom)
+
+    def copy_object(self):
+        print("Copy object")
+
+    def cut_object(ID):
+        print("Cut object")
+        print(ID)
+        TAG = can.gettags(ID)
+        print(TAG)
+        if not TAG :
+            print("Pas de tag")
+        elif TAG[0]=='coo_pt':
+            print("Pas de tag")
+        elif TAG[0]=='sgmt':
+            TAG_1 = TAG[0] + str(ID)
+            print(TAG_1)
+            can.delete(TAG_1)
+            can.delete(ID)
+        else:
+            TAG_1 = TAG[0] + str(ID)
+            print(TAG_1)
+            can.delete(TAG_1)
+            can.delete(ID)
+
+    def cut_object2(self):
+        print("cut object 2")
+        window.option = 60
+
+    def paste_object(self):
+        print("Paste object")
+
+    def add_line(self):
+        print("Add continuous line")
+        window.option = 50
+        print("option=" + str(window.option))
+        CAN_TAB[FILE_NB-1].mainloop()
+
+    def add_segment(self):
+        print("Add segment")
+        window.option = 10
+        print("option=" + str(window.option))
+        CAN_TAB[FILE_NB-1].mainloop()
+
+    def add_cercle_diam(self):
+        print("Add arc")
+        window.option = 20
+        print("option=" + str(window.option))
+        CAN_TAB[FILE_NB-1].mainloop()
+    def add_cercle_centre(self):
+        print("Add arc")
+        window.option = 21
+        print("option=" + str(window.option))
+        CAN_TAB[FILE_NB-1].mainloop()
+    def add_cercle_3pt(self):
+        print("Add arc")
+        window.option = 22
+        print("option=" + str(window.option))
+        CAN_TAB[FILE_NB-1].mainloop()
+
+    def add_rectangle(self):
+        print("Add rectangle")
+        window.option = 30
+        print("option=" + str(window.option))
+        CAN_TAB[FILE_NB-1].mainloop()
+
+    def add_drilling(self):
+        print("Add drilling")
+        window.option = 40
+        print("option=" + str(window.option))
+        CAN_TAB[FILE_NB-1].mainloop()
+
+    def add_pignon_m_out(self):
+        window.option = 70
+
+    def add_pignon_z_out(self):
+        window.option = 71
+
+    def do_about(self):
+        messagebox.showinfo("My title", "My message")
+
+
+window = MyWindow()
+
+
+class cadre1():
+    def __init__(self):
+        self.cadre = Frame(window, height=650, width=1050, bg="white", highlightbackground='black',
+                           highlightcolor='black', highlightthickness=1)
+        self.cadre.pack(expand=1, fill=BOTH, padx=25, pady=0, side=BOTTOM)
+        self.cadre.pack_propagate(False)
+        self.scroll = tkinter.Scrollbar(self.cadre)
+        self.scroll.pack(side='right', fill='y')
+        self.scrollh = tkinter.Scrollbar(self.cadre, orient=tkinter.HORIZONTAL)
+        self.scrollh.pack(side=BOTTOM, fill='x')
+frame = cadre1()
+
+class cadre2():
+    def __init__(self):
+        self.cadre = Frame(window, height=25, width=1800)
+        self.cadre.pack(padx=25, pady=0, side = TOP)
+        self.cadre.pack_propagate(False)
+
+fen_frame = cadre2()
+
+class cannevas():
+    global COUNT
+    COUNT = 0
+    global X1, Y1, X2, Y2
+    X1, X2, Y1, Y2 = 0, 0, 0, 0
+    global sgmt, arc, line, rect, coo_pt, OLD_ID_CIRCLE, obj_compteur
+    sgmt, line, rect, coo_pt, OLD_ID_CIRCLE, obj_compteur = 0, 0, 0, 0, 0, 0
+    global OID, NID
+    OID, NID = (0, 0, 0), (0, 0, 0)
+    global OBJ_PIL
+    OBJ_PIL = []
+
+    def initialisation(self):
+        H, W, i, j = 2000, 2000, 0, 0
+        global can
+        can = Canvas(frame.cadre, height=H, width=W, bg='ivory', scrollregion=(0, 0, H, W))
+        can.pack(expand=1, fill=BOTH, padx=0, pady=0)
+        frame.scroll.config(command=can.yview)
+        frame.scrollh.config(command=can.xview)
+        can.config(xscrollcommand=frame.scrollh.set, yscrollcommand=frame.scroll.set)
+
+        while i < W:
+            j = 0
+            while j < H:
+                can.create_oval(i, j, i, j, fill='black')
+                newTag = "coo_pt"
+                print("NewTag : " + newTag)
+                can.addtag_enclosed(newTag, i - 1, j - 1, i + 1, j + 1)
+                j = j + 25
+            i = i + 25
+        CAN_TAB[FILE_NB-1].mainloop()
+
+    def mainloop(self):
+        print("mainloop")
+        global COUNT
+        COUNT = 0
+        can.bind("<Button-1>", cannevas.clic)
+        can.bind("<Button-3>", cannevas.clic2)
+        can.bind("<Motion>", cannevas.motion)
+
+    def motion(event):
+        global X1, Y1, COUNT, OLD_ID_CIRCLE
+        X = event.widget.canvasx(event.x)
+        Y = event.widget.canvasy(event.y)
+        ID = can.find_enclosed(X - 5, Y - 5, X + 5, Y + 5)
+        TAG_ID = can.gettags(ID)
+        ID_OBJECT = can.find_closest(X, Y)
+        TAG_OBJECT = can.gettags(ID_OBJECT)
+        #print(TAG_OBJECT)
+        STATE = False
+        a = (STATE, 0, 0, 0, 0)
+
+        if COUNT==1:
+            print("count = 1")
+            global NID, OID
+
+            if window.option==10 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_line(X1, Y1, X, Y,'blue')
+                #print(NID)
+                OID = NID
+                #print(OID)
+            if window.option==20 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_circle_diam(X1, Y1, X, Y,'blue')
+                #print(NID)
+                OID = NID
+                #print(OID)
+            if window.option==21 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_circle_ctr_rayon(X1, Y1, X, Y,'blue')
+                #print(NID)
+                OID = NID
+                #print(OID)
+            if window.option==30 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_rect_2pt(X1, Y1, X, Y,'blue')
+                #print(NID)
+                OID = NID
+                #print(OID)
+            if window.option==40 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_circle_diam(X1, Y1, X, Y,'blue')
+                #print(NID)
+                OID = NID
+                #print(OID)
+            if window.option==50 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_line(X1, Y1, X, Y,'blue')
+                #print(NID)
+                OID = NID
+                #print(OID)
+            if window.option==70 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_pignon_m(X1, Y1, X, Y)
+                # print(NID)
+                OID = NID
+                # print(OID)
+            if window.option==71 and X1 != 0 and Y1 != 0:
+                print("X1: ", X1, "Y1: ", Y1, "X2: ", X, "Y2: ", Y)
+                MyWindow.cut_object(OID[1])
+                NID = cannevas().crea_pignon_z(X1, Y1, X, Y)
+                # print(NID)
+                OID = NID
+                # print(OID)
+
+        if COUNT==2:
+            MyWindow.cut_object(OID[1])
+            OID = (0,0,0)
+
+        if not ID:
+            can.delete("PTRG")
+            STATE = False
+            a = (STATE, 0, 0, 0, 0)
+        else:
+            if not TAG_ID:
+                print("pas de tag ID")
+            elif TAG_ID[0] == 'coo_pt':
+                STATE = True
+                TAG = can.gettags(ID[0])
+                COO = can.coords(ID[0])
+                if X > (COO[0] - 5) or X < (COO[0] + 5) or Y > (COO[1] - 5) or Y < (COO[1] + 5):
+                    IDpt = can.create_oval(COO[0] - 5, COO[1] - 5, COO[0] + 5, COO[1] + 5)
+                    can.addtag_withtag("PTRG", IDpt)
+                    a = (STATE, COO[0], COO[1], 0, 0)
+            elif TAG_ID[0] == 'obj_pt':
+                STATE = True
+                TAG = can.gettags(ID[0])
+                COO = can.coords(ID[0])
+                X_CTR = COO[0] + (COO[2] - COO[0])/2
+                Y_CTR = COO[1] + (COO[3] - COO[1])/2
+                a = (STATE, X_CTR, Y_CTR, 0, 0)
+        # print(TAG_OBJECT)
+        if not TAG_OBJECT:
+            print("Pas de tag object")
+        else:
+            if TAG_OBJECT[0] == 'sgmt':
+                COO_OBJECT = can.coords(ID_OBJECT)
+                # print(COO_OBJECT)
+                LENGTH_X_OBJ = COO_OBJECT[2] - COO_OBJECT[0]
+                LENGTH_Y_OBJ = COO_OBJECT[3] - COO_OBJECT[1]
+                LENGTH_OBJ = math.sqrt(LENGTH_X_OBJ * LENGTH_X_OBJ + LENGTH_Y_OBJ * LENGTH_Y_OBJ)
+                # print("LENGTH_OBJ (mm): "+ str(LENGTH_OBJ))
+                if LENGTH_Y_OBJ != 0 and LENGTH_X_OBJ != 0:
+                    ARG_OBJ = math.atan(LENGTH_Y_OBJ / LENGTH_X_OBJ)
+                    # print("ARG_OBJ (deg): "+ str(360*ARG_OBJ/(2*math.pi)))
+                    a = (STATE, 0, 0, LENGTH_OBJ, ARG_OBJ)
+                    U_VECT_LENGTH = 5  # a venir modifier pour régler le zoom
+                    U_X_LENGTH = U_VECT_LENGTH * math.cos(ARG_OBJ)
+                    # print(U_X_LENGTH)
+                    U_Y_LENGTH = U_VECT_LENGTH * math.sin(ARG_OBJ)
+                    # print(U_Y_LENGTH)
+                    RANGE_X = abs(LENGTH_X_OBJ / U_X_LENGTH)
+                    # print(RANGE_X)
+                    RANGE_Y = abs(LENGTH_Y_OBJ / U_Y_LENGTH)
+                    # print(RANGE_Y)
+                    X_PT = []
+                    Y_PT = []
+                    for i in range(int(RANGE_X)):
+                        X_PT.append(round(COO_OBJECT[0] + i * U_X_LENGTH,1))
+                    for j in range(int(RANGE_Y)):
+                        Y_PT.append(round(COO_OBJECT[1] + j * U_Y_LENGTH,1))
+                    X_PT.append(round(COO_OBJECT[2],1))
+                    Y_PT.append(round(COO_OBJECT[3],1))
+
+                    ARRAY_X = []
+                    ARRAY_Y = []
+                    for v in range(60):
+                        ARRAY_X.append(X - 3 + v*0.1)
+                    for w in range(60):
+                        ARRAY_Y.append(Y - 3 + w*0.1)
+                    #print(ARRAY_X)
+                    #print(ARRAY_Y)
+                    # print(Y_PT)
+                    if not set(ARRAY_X) & set(X_PT) and not set(ARRAY_Y) & set(Y_PT):
+                        # print("PAs de point du segment proche")
+                        can.delete("obj_pt")
+                    else:
+                        X_CIRCLE_ens = set(ARRAY_X) & set(X_PT)
+                        X_CIRCLE = list(X_CIRCLE_ens)
+                        #print(X_CIRCLE)
+                        if not X_CIRCLE:
+                            print("X_CIRCLE vide")
+                        else:
+                            ind = X_PT.index(X_CIRCLE[0])
+                            #print(ind)
+                            #print(Y_PT[ind])
+                            can.delete(OLD_ID_CIRCLE)
+                            NEW_ID_CIRCLE = can.create_oval(X_CIRCLE[0] - 3, Y_PT[ind] - 3, X_CIRCLE[0] + 3, Y_PT[ind] + 3,
+                                                        fill='blue')
+                            can.addtag_withtag("obj_pt", NEW_ID_CIRCLE)
+                            OLD_ID_CIRCLE = NEW_ID_CIRCLE
+
+            if TAG_OBJECT[0] == 'coo_pt':
+                can.delete("obj_pt")
+
+            if TAG_OBJECT[0] == 'arc':
+                COO_OBJECT = can.coords(ID_OBJECT)
+                #print(COO_OBJECT)
+                if not COO_OBJECT:
+                    print("Pas de coo obj")
+                else:
+                    DIAM_OBJ_CIRCLE = COO_OBJECT[2] - COO_OBJECT[0]
+                    #print(DIAM_OBJ_CIRCLE)
+                    RAY_OBJ = DIAM_OBJ_CIRCLE/2
+                    #print(RAY_OBJ)
+                    CENTRE_OBJ =(COO_OBJECT[0]+(COO_OBJECT[2]-COO_OBJECT[0])/2, COO_OBJECT[1]+(COO_OBJECT[3]-COO_OBJECT[1])/2)
+                    #print(CENTRE_OBJ)
+                    # print("LENGTH_OBJ (mm): "+ str(LENGTH_OBJ))
+                    PM = DIAM_OBJ_CIRCLE * math.pi
+                    #print(PM)
+                    ARG_OBJ = 0
+                    a = (STATE, 0, 0, DIAM_OBJ_CIRCLE, ARG_OBJ)
+                    VECT = 2  # a venir modifier pour régler le zoom
+
+                    X_PT_HD = []
+                    Y_PT_HD = []
+                    X_PT_HG = []
+                    Y_PT_HG = []
+                    X_PT_BD = []
+                    Y_PT_BD = []
+                    X_PT_BG = []
+                    Y_PT_BG = []
+                    i = 0
+
+                    while i < int(PM/(4*VECT)):
+                        X_PT_HD.append(round(CENTRE_OBJ[0] + RAY_OBJ * math.cos((2 * math.pi * VECT) * i / PM), 1))
+                        Y_PT_HD.append(round(CENTRE_OBJ[1] - RAY_OBJ * math.sin((2 * math.pi * VECT) * i / PM), 1))
+                        i = i + 1
+                    while i < int(2*PM/(4*VECT)):
+                        X_PT_HG.append(round(CENTRE_OBJ[0] + RAY_OBJ * math.cos((2 * math.pi * VECT) * i / PM), 1))
+                        Y_PT_HG.append(round(CENTRE_OBJ[1] - RAY_OBJ * math.sin((2 * math.pi * VECT) * i / PM), 1))
+                        i = i + 1
+                    while i < int(3*PM/(4*VECT)):
+                        X_PT_BG.append(round(CENTRE_OBJ[0] + RAY_OBJ * math.cos((2 * math.pi * VECT) * i / PM), 1))
+                        Y_PT_BG.append(round(CENTRE_OBJ[1] - RAY_OBJ * math.sin((2 * math.pi * VECT) * i / PM), 1))
+                        i = i + 1
+                    while i < int(4*PM/(4*VECT)):
+                        X_PT_BD.append(round(CENTRE_OBJ[0] + RAY_OBJ * math.cos((2 * math.pi * VECT) * i / PM), 1))
+                        Y_PT_BD.append(round(CENTRE_OBJ[1] - RAY_OBJ * math.sin((2 * math.pi * VECT) * i / PM), 1))
+                        i = i + 1
+                    ARRAY_X = []
+                    ARRAY_Y = []
+                    for v in range(60):
+                        ARRAY_X.append(X - 3 + v * 0.1)
+                    for w in range(60):
+                        ARRAY_Y.append(Y - 3 + w * 0.1)
+
+                    if (X-CENTRE_OBJ[0])>0 and (Y-CENTRE_OBJ[1])<0:
+                        #on est dans le quart HD du cercle
+                        if not set(ARRAY_X) & set(X_PT_HD) or not set(ARRAY_Y) & set(Y_PT_HD):
+                            #print("PAs de point du segment proche")
+                            can.delete("obj_pt")
+                        else:
+                            X_CIRCLE_ens = set(ARRAY_X) & set(X_PT_HD)
+                            Y_CIRCLE_ens = set(ARRAY_Y) & set(Y_PT_HD)
+                            X_CIRCLE = list(X_CIRCLE_ens)
+                            Y_CIRCLE = list(Y_CIRCLE_ens)
+                            # print(X_CIRCLE)
+                            if not X_CIRCLE or not Y_CIRCLE:
+                                print("X_CIRCLE ou Y_CIRCLE vide")
+                            else:
+                                ind1 = X_PT_HD.index(X_CIRCLE[0])
+                                indi=0
+                                ind_exist = False
+                                while indi < len(Y_CIRCLE):
+                                    ind2 = Y_PT_HD.index(Y_CIRCLE[indi])
+                                    indi = indi + 1
+                                    if ind1 == ind2:
+                                        ind = ind2
+                                        ind_exist = True
+                                if ind_exist:
+                                    can.delete(OLD_ID_CIRCLE)
+                                    NEW_ID_CIRCLE = can.create_oval(X_PT_HD[ind] - 3, Y_PT_HD[ind] - 3, X_PT_HD[ind] + 3,
+                                                                    Y_PT_HD[ind] + 3,
+                                                                    fill='blue')
+                                    can.addtag_withtag("obj_pt", NEW_ID_CIRCLE)
+                                    OLD_ID_CIRCLE = NEW_ID_CIRCLE
+                                else:
+                                    print("Pas de point")
+
+                    if (X-CENTRE_OBJ[0])<0 and (Y-CENTRE_OBJ[1])<0:
+                        #on est dans le quart HD du cercle
+                        if not set(ARRAY_X) & set(X_PT_HG) or not set(ARRAY_Y) & set(Y_PT_HG):
+                            #print("PAs de point du segment proche")
+                            can.delete("obj_pt")
+                        else:
+                            X_CIRCLE_ens = set(ARRAY_X) & set(X_PT_HG)
+                            Y_CIRCLE_ens = set(ARRAY_Y) & set(Y_PT_HG)
+                            X_CIRCLE = list(X_CIRCLE_ens)
+                            Y_CIRCLE = list(Y_CIRCLE_ens)
+                            # print(X_CIRCLE)
+                            if not X_CIRCLE or not Y_CIRCLE:
+                                print("X_CIRCLE ou Y_CIRCLE vide")
+                            else:
+                                ind1 = X_PT_HG.index(X_CIRCLE[0])
+                                indi=0
+                                ind_exist = False
+                                while indi < len(Y_CIRCLE):
+                                    ind2 = Y_PT_HG.index(Y_CIRCLE[indi])
+                                    indi = indi + 1
+                                    if ind1 == ind2:
+                                        ind = ind2
+                                        ind_exist = True
+                                if ind_exist:
+                                    can.delete(OLD_ID_CIRCLE)
+                                    NEW_ID_CIRCLE = can.create_oval(X_PT_HG[ind] - 3, Y_PT_HG[ind] - 3, X_PT_HG[ind] + 3,
+                                                                    Y_PT_HG[ind] + 3,
+                                                                    fill='blue')
+                                    can.addtag_withtag("obj_pt", NEW_ID_CIRCLE)
+                                    OLD_ID_CIRCLE = NEW_ID_CIRCLE
+                                else:
+                                    print("Pas de point")
+
+                    if (X-CENTRE_OBJ[0])<0 and (Y-CENTRE_OBJ[1])>0:
+                        #on est dans le quart HD du cercle
+                        if not set(ARRAY_X) & set(X_PT_BG) or not set(ARRAY_Y) & set(Y_PT_BG):
+                            #print("PAs de point du segment proche")
+                            can.delete("obj_pt")
+                        else:
+                            X_CIRCLE_ens = set(ARRAY_X) & set(X_PT_BG)
+                            Y_CIRCLE_ens = set(ARRAY_Y) & set(Y_PT_BG)
+                            X_CIRCLE = list(X_CIRCLE_ens)
+                            Y_CIRCLE = list(Y_CIRCLE_ens)
+                            # print(X_CIRCLE)
+                            if not X_CIRCLE or not Y_CIRCLE:
+                                print("X_CIRCLE ou Y_CIRCLE vide")
+                            else:
+                                ind1 = X_PT_BG.index(X_CIRCLE[0])
+                                indi=0
+                                ind_exist = False
+                                while indi < len(Y_CIRCLE):
+                                    ind2 = Y_PT_BG.index(Y_CIRCLE[indi])
+                                    indi = indi + 1
+                                    if ind1 == ind2:
+                                        ind = ind2
+                                        ind_exist = True
+                                if ind_exist:
+                                    can.delete(OLD_ID_CIRCLE)
+                                    NEW_ID_CIRCLE = can.create_oval(X_PT_BG[ind] - 3, Y_PT_BG[ind] - 3, X_PT_BG[ind] + 3,
+                                                                    Y_PT_BG[ind] + 3,
+                                                                    fill='blue')
+                                    can.addtag_withtag("obj_pt", NEW_ID_CIRCLE)
+                                    OLD_ID_CIRCLE = NEW_ID_CIRCLE
+                                else:
+                                    print("Pas de point")
+
+                    if (X-CENTRE_OBJ[0])>0 and (Y-CENTRE_OBJ[1])>0:
+                        #on est dans le quart HD du cercle
+                        if not set(ARRAY_X) & set(X_PT_BD) or not set(ARRAY_Y) & set(Y_PT_BD):
+                            #print("PAs de point du segment proche")
+                            can.delete("obj_pt")
+                        else:
+                            X_CIRCLE_ens = set(ARRAY_X) & set(X_PT_BD)
+                            Y_CIRCLE_ens = set(ARRAY_Y) & set(Y_PT_BD)
+                            X_CIRCLE = list(X_CIRCLE_ens)
+                            Y_CIRCLE = list(Y_CIRCLE_ens)
+                            # print(X_CIRCLE)
+                            if not X_CIRCLE or not Y_CIRCLE:
+                                print("X_CIRCLE ou Y_CIRCLE vide")
+                            else:
+                                ind1 = X_PT_BD.index(X_CIRCLE[0])
+                                indi=0
+                                ind_exist = False
+                                while indi < len(Y_CIRCLE):
+                                    ind2 = Y_PT_BD.index(Y_CIRCLE[indi])
+                                    indi = indi + 1
+                                    if ind1 == ind2:
+                                        ind = ind2
+                                        ind_exist = True
+                                if ind_exist:
+                                    can.delete(OLD_ID_CIRCLE)
+                                    NEW_ID_CIRCLE = can.create_oval(X_PT_BD[ind] - 3, Y_PT_BD[ind] - 3, X_PT_BD[ind] + 3, Y_PT_BD[ind] + 3, fill='blue')
+                                    can.addtag_withtag("obj_pt", NEW_ID_CIRCLE)
+                                    OLD_ID_CIRCLE = NEW_ID_CIRCLE
+                                else:
+                                    print("Pas de point")
+
+            if len(TAG_OBJECT[0])>3:
+                LEN_TAG=len(TAG_OBJECT[0])
+                SPLITE = TAG_OBJECT[0]
+                #print("split[0]à2",SPLITE[0],SPLITE[1],SPLITE[2])
+                MOT = SPLITE[0] + SPLITE[1] + SPLITE[2]
+                #print(MOT)
+                i=3
+                ID_WIDGT = ''
+                while i < LEN_TAG:
+                    ID_WIDGT = ID_WIDGT + SPLITE[i]
+                    i = i + 1
+                #print((ID_WIDGT))
+                if MOT == 'arc':
+                    ARRAY_X = []
+                    ARRAY_Y = []
+                    for v in range(60):
+                        ARRAY_X.append(X - 3 + v * 0.1)
+                    for w in range(60):
+                        ARRAY_Y.append(Y - 3 + w * 0.1)
+                    CIRCLE_COO = can.coords(ID_WIDGT)
+                    CTR_PT = ((CIRCLE_COO[0]+CIRCLE_COO[2])/2,(CIRCLE_COO[1]+CIRCLE_COO[3])/2)
+                    can.delete(OLD_ID_CIRCLE)
+                    NEW_ID_CIRCLE = can.create_oval(CTR_PT[0] - 3, CTR_PT[1] - 3, CTR_PT[0] + 3,
+                                                    CTR_PT[1] + 3,
+                                                    fill='blue')
+                    can.addtag_withtag("obj_pt", NEW_ID_CIRCLE)
+                    OLD_ID_CIRCLE = NEW_ID_CIRCLE
+
+        # print(a)
+        return a
+
+    def crea_circle_diam(self,X1,Y1,X2,Y2,color):
+        A = (Y2 - Y1) / 2
+        B = (X2 - X1) / 2
+        print('A:' + str(A) + ' B:' + str(B))
+        MOD = math.sqrt((4 * A * A) + (4 * B * B))
+        print("MOD:" + str(MOD))
+        # ARG = math.atan(A / B)
+        CENTRE = (X1 + B, Y1 + A)
+        print("CENTRE:")
+        print(CENTRE)
+        ID = can.create_oval(CENTRE[0] - MOD / 2, CENTRE[1] - MOD / 2, CENTRE[0] + MOD / 2,
+                             CENTRE[1] + MOD / 2, width=3, outline=color)
+        ID1 = can.create_line(X1, Y1, X2, Y2, fill='grey25', arrow='both')
+        can.addtag_withtag('arc' + str(ID), ID1)
+        MOD = round(MOD, 2)
+        ID2 = can.create_text(CENTRE[0], CENTRE[1] - 15, text=str(MOD), anchor='center', justify='center')
+        can.addtag_withtag('arc' + str(ID), ID2)
+        newTag = "arc"
+        TG = 'arc'+str(ID)
+        can.addtag_withtag(newTag, ID)
+        print("newTag : " + newTag)
+        return (newTag, ID, TG)
+
+    def crea_circle_ctr_rayon(self,X1,Y1,X2,Y2,color):
+        X_LEN = X2 - X1
+        Y_LEN = Y2 - Y1
+        RAYON = math.sqrt(X_LEN * X_LEN + Y_LEN * Y_LEN)
+        RAYON = round(RAYON, 2)
+        if X2 != X1 :
+            ARG_RAY = math.atan(Y_LEN/X_LEN)
+        else:
+            ARG_RAY = 90
+
+        CENTRE = (X1,Y1)
+        ID = can.create_oval(X1-RAYON,Y1-RAYON,X1+RAYON,Y1+RAYON,width=3,outline=color)
+        ID1 = can.create_line(X1, Y1, X2, Y2, fill='grey25', arrow='both')
+        can.addtag_withtag('arc' + str(ID), ID1)
+        RAYON = round(RAYON, 2)
+        ID2 = can.create_text(CENTRE[0] + (RAYON * math.cos(ARG_RAY))/2, CENTRE[1] - 15 +(RAYON * math.sin(ARG_RAY))/2,
+                              text=str(RAYON), anchor='center', justify='center', angle=-ARG_RAY*360/(2*math.pi))
+        can.addtag_withtag('arc' + str(ID), ID2)
+        newTag = "arc"
+        TG = 'arc' + str(ID)
+        can.addtag_withtag(newTag, ID)
+        print("newTag : " + newTag)
+        return (newTag, ID, TG)
+
+    def crea_rect_2pt(self,X1,Y1,X2,Y2,color):
+        ID = can.create_rectangle(X1, Y1, X2, Y2, width=3, outline=color)
+        TG = "rect" + str(ID)
+        ID1 = can.create_line(X1, Y1 - 12, X2, Y1 - 12, fill='grey25', arrow='both')
+        can.addtag_withtag(TG, ID1)
+        ID2 = can.create_line(X1, Y1, X1, Y1 - 12, fill='grey25')
+        can.addtag_withtag(TG, ID2)
+        ID3 = can.create_line(X2, Y1, X2, Y1 - 12, fill='grey25')
+        can.addtag_withtag(TG, ID3)
+        ID4 = can.create_line(X2, Y1, X2 + 12, Y1, fill='grey25')
+        can.addtag_withtag(TG, ID4)
+        ID5 = can.create_line(X2, Y2, X2 + 12, Y2, fill='grey25')
+        can.addtag_withtag(TG, ID5)
+        ID6 = can.create_line(X2 + 12, Y1, X2 + 12, Y2, fill='grey25', arrow='both')
+        can.addtag_withtag(TG, ID6)
+        ID7 = can.create_text(X1 + (X2 - X1) / 2, Y1 - 20, text=str(X2 - X1),
+                              anchor='center', justify='center')
+        can.addtag_withtag(TG, ID7)
+        ID8 = can.create_text(X2 + 20, Y1 + (Y2 - Y1) / 2, text=str(Y2 - Y1),
+                              anchor='center', justify='center', angle=-90)
+        can.addtag_withtag(TG, ID8)
+        newTag = "rect"
+        can.addtag_withtag(newTag, ID)
+        print("newTag : " + newTag)
+
+        return (newTag, ID, TG)
+
+    def crea_line(self,X1,Y1,X2,Y2,color):
+        X_LEN = X2 - X1
+        Y_LEN = Y2 - Y1
+        LEN = math.sqrt(X_LEN * X_LEN + Y_LEN * Y_LEN)
+        LEN = round(LEN, 2)
+        if X1 != X2:
+            ARG = math.atan(Y_LEN / X_LEN)
+            ARG2 = ARG + math.pi / 2
+        if X1 == X2:
+            ARG = 90
+            ARG2 = 0
+        print(ARG)
+        if ARG < 0:
+            if X2 < X1:
+                memo = X2
+                X2 = X1
+                X1 = memo
+                memo = Y1
+                Y1 = Y2
+                Y2 = memo
+            ARG2 = ARG - math.pi / 2
+        if ARG > 0:
+            if Y2 < Y1:
+                memo = Y1
+                Y1 = Y2
+                Y2 = memo
+                memo = X2
+                X2 = X1
+                X1 = memo
+            ARG2 = ARG + math.pi / 2
+        ID = can.create_line(X1, Y1, X2, Y2, width=3, fill=color)
+        if ARG == 90:
+            TAG_1 = "sgmt" + str(ID)
+            print(TAG_1)
+            ID1 = can.create_line(X1, Y1, X1 + 12, Y1, fill='gray25')
+            can.addtag_withtag(TAG_1, ID1)
+            ID2 = can.create_line(X2, Y2, X2 + 12, Y2, fill='gray25')
+            can.addtag_withtag(TAG_1, ID2)
+            ID3 = can.create_line(X1 + 12, Y1, X2 + 12, Y2, fill='gray25', arrow='both')
+            can.addtag_withtag(TAG_1, ID3)
+            ID4 = can.create_text(X1 + 20, Y1 + (Y2 - Y1) / 2, text=str(LEN),
+                                  anchor='center', justify='center', angle=-90)
+            can.addtag_withtag(TAG_1, ID4)
+        else:
+            TAG_1 = "sgmt" + str(ID)
+            # print(TAG_1)
+            ID1 = can.create_line(X1, Y1, X1 - 12 * math.cos(ARG2), Y1 - 12 * math.sin(ARG2), fill='gray25')
+            can.addtag_withtag(TAG_1, ID1)
+            ID2 = can.create_line(X2, Y2, X2 - 12 * math.cos(ARG2), Y2 - 12 * math.sin(ARG2), fill='gray25')
+            can.addtag_withtag(TAG_1, ID2)
+            ID3 = can.create_line(X1 - 12 * math.cos(ARG2), Y1 - 12 * math.sin(ARG2),
+                                  X2 - 12 * math.cos(ARG2), Y2 - 12 * math.sin(ARG2), fill='gray25',
+                                  arrow='both')
+            can.addtag_withtag(TAG_1, ID3)
+            ID4 = can.create_text(X1 - 20 * math.cos(ARG2) + (X2 - X1) / 2,
+                                  Y1 - 20 * math.sin(ARG2) + (Y2 - Y1) / 2, text=str(LEN),
+                                  anchor='center', justify='center', angle=-int(ARG * 360 / (2 * math.pi)))
+            can.addtag_withtag(TAG_1, ID4)
+        newTag = "sgmt"
+        can.addtag_withtag(newTag, ID)
+        print("newTag : " + newTag)
+        return (newTag, ID, TAG_1)
+
+    def crea_pignon_m(self, X1, Y1, X2, Y2, color='blue', Z=10):
+        X_LEN = X2 - X1
+        Y_LEN = Y2 - Y1
+        if X_LEN != 0:
+            ARG = math.atan(Y_LEN/X_LEN)
+        else:
+            ARG = 90
+        R = math.sqrt(X_LEN * X_LEN + Y_LEN * Y_LEN)
+        M = R * 2 / Z
+        RA = M
+        RB = 1.25 * M
+        H = 2.25 * M
+        P = math.pi * M
+        RyH = (R*2 + 2 * M)/2
+        RyB = (R*2 - 2.5 * M)/2
+        ID1 = can.create_oval(X1-R, Y1-R, X1+R, Y1+R, outline='grey25')
+        ID2 = can.create_line(X1, Y1, X2, Y2, fill='grey25', arrow='both')
+        #ID3 = can.create_oval(X1-R-RA, Y1-R-RA, X1+R+RA, Y1+R+RA, outline='grey25')
+        TAG_1 = 'pign'+str(ID1)
+        newTag = 'pign'
+        can.addtag_withtag(newTag, ID1)
+        can.addtag_withtag(TAG_1, ID2)
+        #can.addtag_withtag(TAG_1, ID3)
+        PB = RyB * (P / R)
+        PH = RyH * (P / R)
+        COEF = PH/PB
+        DELTA = PH-PB
+        b = 1
+        a = b/5
+        PT = []
+        B_PT = []
+        H_PT = []
+        for i in range(2*Z):
+            TETA = i * P / R
+            PT.append((X1 + R * math.cos(TETA/2 + ARG), Y1 + R * math.sin(TETA/2 + ARG)))
+            COO_PT = PT[i]
+            print(COO_PT)
+            if (i%2) != 0:
+                B_PT.append((COO_PT[0] - RB * math.cos((TETA+0.2)/2 + ARG), COO_PT[1] - RB * math.sin((TETA+0.2)/2 + ARG)))
+                H_PT.append((COO_PT[0] + RA * math.cos((TETA + 1) / 2 + ARG), COO_PT[1] + RA * math.sin((TETA + 1) / 2 + ARG)))
+                B_PTi = B_PT[i]
+                H_PTi = H_PT[i]
+                ID4 = can.create_line(B_PTi[0], B_PTi[1], COO_PT[0], COO_PT[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID4)
+                ID5 = can.create_line(COO_PT[0], COO_PT[1], H_PTi[0], H_PTi[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID5)
+
+            if (i%2) == 0:
+                B_PT.append((COO_PT[0] - RB * math.cos((TETA-0.2)/2 + ARG), COO_PT[1] - RB * math.sin((TETA-0.2)/2 + ARG)))
+                H_PT.append((COO_PT[0] + RA * math.cos((TETA - 1) / 2 + ARG), COO_PT[1] + RA * math.sin((TETA - 1) / 2 + ARG)))
+                B_PTi = B_PT[i]
+                H_PTi = H_PT[i]
+                ID4 = can.create_line(B_PTi[0], B_PTi[1], COO_PT[0], COO_PT[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID4)
+                ID5 = can.create_line(COO_PT[0], COO_PT[1], H_PTi[0], H_PTi[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID5)
+        for i in range(19):
+            if (i % 2) != 0:
+                PT_A1 = H_PT[i]
+                PT_A2 = H_PT[i + 1]
+                ID6 = can.create_line(PT_A1[0], PT_A1[1], PT_A2[0], PT_A2[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID6)
+            if (i % 2) == 0:
+                PT_B1 = B_PT[i]
+                PT_B2 = B_PT[i + 1]
+                ID7 = can.create_line(PT_B2[0], PT_B2[1], PT_B1[0], PT_B1[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID7)
+            PT_A1 = H_PT[19]
+            PT_A2 = H_PT[0]
+            ID8 = can.create_line(PT_A1[0], PT_A1[1], PT_A2[0], PT_A2[1], fill='blue', width=3)
+            can.addtag_withtag(TAG_1, ID8)
+        return (newTag, ID1, TAG_1)
+
+    def crea_pignon_z(self, X1, Y1, X2, Y2, color='blue', M=2):
+        X_LEN = X2 - X1
+        Y_LEN = Y2 - Y1
+        if X_LEN != 0:
+            ARG = math.atan(Y_LEN / X_LEN)
+        else:
+            ARG = 90
+        R = math.sqrt(X_LEN * X_LEN + Y_LEN * Y_LEN)
+        Z = int(R * 2 / M)
+        print(Z)
+        RA = M
+        RB = 1.25 * M
+        H = 2.25 * M
+        P = math.pi * M
+        RyH = (R * 2 + 2 * M) / 2
+        RyB = (R * 2 - 2.5 * M) / 2
+        ID1 = can.create_oval(X1 - R, Y1 - R, X1 + R, Y1 + R, outline='grey25')
+        ID2 = can.create_line(X1, Y1, X2, Y2, fill='grey25', arrow='both')
+        TAG_1 = 'pign' + str(ID1)
+        newTag = 'pign'
+        can.addtag_withtag(newTag, ID1)
+        can.addtag_withtag(TAG_1, ID2)
+        PB = RyB * (P / R)
+        PH = RyH * (P / R)
+        COEF = PH / PB
+        DELTA = PH - PB
+        b = 1
+        a = b / 5
+        PT = []
+        B_PT = []
+        H_PT = []
+        for i in range(2 * Z):
+            TETA = i * P / R
+            PT.append((X1 + R * math.cos(TETA / 2 + ARG), Y1 + R * math.sin(TETA / 2 + ARG)))
+            COO_PT = PT[i]
+            print(COO_PT)
+            if (i % 2) != 0:
+                B_PT.append((COO_PT[0] - RB * math.cos((TETA + 0.2) / 2 + ARG),
+                             COO_PT[1] - RB * math.sin((TETA + 0.2) / 2 + ARG)))
+                H_PT.append(
+                    (COO_PT[0] + RA * math.cos((TETA + 1) / 2 + ARG), COO_PT[1] + RA * math.sin((TETA + 1) / 2 + ARG)))
+                B_PTi = B_PT[i]
+                H_PTi = H_PT[i]
+                ID4 = can.create_line(B_PTi[0], B_PTi[1], COO_PT[0], COO_PT[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID4)
+                ID5 = can.create_line(COO_PT[0], COO_PT[1], H_PTi[0], H_PTi[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID5)
+
+            if (i % 2) == 0:
+                B_PT.append((COO_PT[0] - RB * math.cos((TETA - 0.2) / 2 + ARG),
+                             COO_PT[1] - RB * math.sin((TETA - 0.2) / 2 + ARG)))
+                H_PT.append(
+                    (COO_PT[0] + RA * math.cos((TETA - 1) / 2 + ARG), COO_PT[1] + RA * math.sin((TETA - 1) / 2 + ARG)))
+                B_PTi = B_PT[i]
+                H_PTi = H_PT[i]
+                ID4 = can.create_line(B_PTi[0], B_PTi[1], COO_PT[0], COO_PT[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID4)
+                ID5 = can.create_line(COO_PT[0], COO_PT[1], H_PTi[0], H_PTi[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID5)
+        for i in range(19):
+            if (i % 2) != 0:
+                PT_A1 = H_PT[i]
+                PT_A2 = H_PT[i + 1]
+                ID6 = can.create_line(PT_A1[0], PT_A1[1], PT_A2[0], PT_A2[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID6)
+            if (i % 2) == 0:
+                PT_B1 = B_PT[i]
+                PT_B2 = B_PT[i + 1]
+                ID7 = can.create_line(PT_B2[0], PT_B2[1], PT_B1[0], PT_B1[1], fill='blue', width=3)
+                can.addtag_withtag(TAG_1, ID7)
+            PT_A1 = H_PT[19]
+            PT_A2 = H_PT[0]
+            ID8 = can.create_line(PT_A1[0], PT_A1[1], PT_A2[0], PT_A2[1], fill='blue', width=3)
+            can.addtag_withtag(TAG_1, ID8)
+        return (newTag, ID1, TAG_1)
+
+    def clic(event):
+        X = event.widget.canvasx(event.x)
+        Y = event.widget.canvasy(event.y)
+        print("Clic détecté en X =" + str(X) + ", Y =" + str(Y))
+        global COUNT
+        COUNT = COUNT + 1
+        global X1, X2, Y1, Y2, OID, NID
+        global sgmt, line, rect
+        TUPLE = cannevas.motion(event)
+        print(TUPLE)
+
+        if window.option == 60:
+            ID_delete = can.find_closest(X,Y)
+            MyWindow.cut_object(ID_delete[0])
+            COUNT = 0
+
+        if TUPLE[0] == False:
+            print("Pas de pt rouge selectionné")
+            print("COUNT: " + str(COUNT))
+            print("Option séléctionnée: " + str(window.option))
+            if window.option == 10:
+                print("segment: " + str(window.option))
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X2) + " Y2:" + str(Y2))
+                    obj_courant = cannevas().crea_line(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+
+                    global OBJ_PIL, obj_compteur
+                    obj_compteur = obj_compteur + 1
+                    #objet_courant =  # Tuple de la valeur de l'objet en création
+                    print("obj_compteur: ",obj_compteur)
+                    ID_courant = obj_courant[1]
+                    print("ID_courant: ",ID_courant)
+                    TAG_courant = obj_courant[0]
+                    print("TAG_courant: ", TAG_courant)
+                    courant_coo = can.coords(ID_courant)
+                    print("coo courantes: ",courant_coo)
+                    tuple_in_pil = (TAG_courant, ID_courant)
+                    OBJ_PIL.append(tuple_in_pil)
+                    print("New object: ")
+                    print(OBJ_PIL[obj_compteur-1])
+                    # on se place dans le cas ou on construit un segment
+                    if TAG_courant == 'sgmt':
+                        # test de la pile d'objets
+                        for i in range(len(OBJ_PIL)):
+                            if i != obj_compteur-1:
+                                obj_to_test = OBJ_PIL[i]
+                                print("OBJ to test: ",obj_to_test)
+                                to_test_coords = can.coords(obj_to_test[1])
+                                print(to_test_coords)
+                                if obj_to_test[0] == 'sgmt':
+                                    # y1 = a1.x + b1
+                                    # y2 = a2.x + b2
+                                    a1 = (courant_coo[3] - courant_coo[1]) / (courant_coo[2] - courant_coo[0])
+                                    print(a1)
+                                    b1 = courant_coo[1] - a1 * courant_coo[0]
+                                    print(b1)
+                                    a2 = (to_test_coords[3] - to_test_coords[1]) / (to_test_coords[2] - to_test_coords[0])
+                                    print(a2)
+                                    b2 = to_test_coords[1] - a2 * to_test_coords[0]
+                                    print(b2)
+                                    x_croisement = (b2 - b1) / (a1 - a2)
+                                    print(x_croisement)
+                                    y_croisement = a1 * x_croisement + b1
+                                    print(y_croisement)
+
+                                    # On vient tester si le point de rencontre des droites se situe bien sur les deux segments
+                                    if x_croisement >= to_test_coords[0] - 1 and x_croisement <= to_test_coords[
+                                        2] + 1 and y_croisement >= to_test_coords[1] - 1 and y_croisement <= \
+                                            to_test_coords[3] + 1:
+                                        if x_croisement >= courant_coo[0] - 1 and x_croisement <= courant_coo[
+                                            2] + 1 and y_croisement >= courant_coo[1] - 1 and y_croisement <= \
+                                                courant_coo[3] + 1:
+                                            # Si le point impoartient aux deux segment alors il y à croisement
+                                            print("point en :", x_croisement, y_croisement)
+                                            ID_CRUX_PT = can.create_oval(x_croisement - 3, y_croisement - 3,
+                                                                         x_croisement + 3, y_croisement + 3,
+                                                                         outline='black', fill='black')
+
+                    """if obj_to_test[0] == 'arc':
+                        # y1 = a1.x + b1
+                        # x^2 + y^2 - 2ax - 2by + a^2 + b^2 - r^2 = 0
+                        a1 = (courant_coo[3] - courant_coo[1]) / (courant_coo[2] - courant_coo[0])
+                        b1 = courant_coo[1] - a1 * courant_coo[0]
+                        a = (to_test_coords[2] + to_test_coords[0]) / 2
+                        b = (to_test_coords[3] + to_test_coords[1]) / 2
+                        r = (to_test_coords[2] - to_test_coords[1]) / 2
+                        A = (1 + a1 * a1)
+                        B = (2 * a1 * b1 - 2 * a - 2 * b * a1)
+                        C = (b1 * b1 - 2 * b * b1 + a * a + b * b - r * r)
+                        DELTA = B * B - 4 * A * C
+                        if DELTA >= 0:
+                            x_cr_1 = (-B - math.sqrt(DELTA)) / (2 * A)
+                            x_cr_2 = (-B + math.sqrt(DELTA)) / (2 * A)
+                            y_cr_1 = a1 * x_cr_1 + b1
+                            y_cr_2 = a1 * x_cr_2 + b1
+    
+                        if x_cr_1 >= courant_coo[0] and x_cr_1 <= courant_coo[2] and y_cr_1 >= courant_coo[1] and y_cr_1 <= courant_coo[3]:
+                            # Si le point 1 appartient au segement
+                            ID_CRUX_PT_1 = can.create_oval(x_cr_1 - 3, y_cr_1 - 3, x_cr_1 + 3, y_cr_1 + 3, outline='blue',
+                                                       fill='blue')
+    
+                        if x_cr_2 >= courant_coo[0] and x_cr_2 <= courant_coo[2] and y_cr_2 >= courant_coo[1] and y_cr_2 <= courant_coo[3]:
+                            # Si le point 1 appartient au segement
+                            ID_CRUX_PT_2 = can.create_oval(x_cr_2 - 3, y_cr_2 - 3, x_cr_2 + 3, y_cr_2 + 3, outline='blue',
+                                                       fill='blue')"""
+            if window.option == 20:
+                print("cercle par diam: " + str(window.option))
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X2) + " Y2:" + str(Y2))
+                    cannevas().crea_circle_diam(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+            if window.option == 21:
+                print("cercle par rayon: " + str(window.option))
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X2) + " Y2:" + str(Y2))
+                    cannevas().crea_circle_ctr_rayon(X1, Y1, X2, Y2, 'blue')
+                    COUNT = 0
+            if window.option == 30:
+                print("rectangle: " + str(window.option))
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_rect_2pt(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+            if window.option == 40:
+                print("drill: " + str(window.option))
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_circle_diam(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+            if window.option == 50:
+                print("Ligne continue: " + str(window.option))
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT == 3:
+                    X1 = X2
+                    Y1 = Y2
+                    COUNT = 2
+                if COUNT == 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_line(X1,Y1,X2,Y2,'blue')
+            if window.option == 70:
+                print("Pignon")
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_pignon_m(X1,Y1,X2,Y2)
+                    COUNT = 0
+            if window.option == 71:
+                print("Pignon")
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_pignon_z(X1, Y1, X2, Y2)
+                    COUNT = 0
+
+
+        if TUPLE[0] == True:
+            print("point rouge selectionné")
+            print("COUNT: " + str(COUNT))
+            print("Option séléctionnée: " + str(window.option))
+            if window.option == 10:
+                print("segment: " + str(window.option))
+                if COUNT == 1:
+                    X1 = TUPLE[1]
+                    Y1 = TUPLE[2]
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = TUPLE[1]
+                    Y2 = TUPLE[2]
+                    print("X2:" + str(X2) + " Y2:" + str(Y2))
+                    cannevas().crea_line(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+            if window.option == 20:
+                print("cercle: " + str(window.option))
+                if COUNT == 1:
+                    X1 = TUPLE[1]
+                    Y1 = TUPLE[2]
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = TUPLE[1]
+                    Y2 = TUPLE[2]
+                    print("X2:" + str(X2) + " Y2:" + str(Y2))
+                    cannevas().crea_circle_diam(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+            if window.option == 21:
+                print("cercle par rayon: " + str(window.option))
+                if COUNT == 1:
+                    X1 = TUPLE[1]
+                    Y1 = TUPLE[2]
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = TUPLE[1]
+                    Y2 = TUPLE[2]
+                    print("X2:" + str(X2) + " Y2:" + str(Y2))
+                    cannevas().crea_circle_ctr_rayon(X1, Y1, X2, Y2, 'blue')
+                    COUNT = 0
+            if window.option == 30:
+                print("rectangle: " + str(window.option))
+                if COUNT == 1:
+                    X1 = TUPLE[1]
+                    Y1 = TUPLE[2]
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = TUPLE[1]
+                    Y2 = TUPLE[2]
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_rect_2pt(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+            if window.option == 40:
+                print("perçage: " + str(window.option))
+                if COUNT == 1:
+                    X1 = TUPLE[1]
+                    Y1 = TUPLE[2]
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = TUPLE[1]
+                    Y2 = TUPLE[2]
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_circle_diam(X1,Y1,X2,Y2,'blue')
+                    COUNT = 0
+            if window.option == 50:
+                print("Ligne continue: " + str(window.option))
+                if COUNT == 1:
+                    X1 = TUPLE[1]
+                    Y1 = TUPLE[2]
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT == 3:
+                    X1 = X2
+                    Y1 = Y2
+                    COUNT = 2
+                if COUNT == 2:
+                    X2 = TUPLE[1]
+                    Y2 = TUPLE[2]
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_line(X1,Y1,X2,Y2,'blue')
+            if window.option == 70:
+                print("Pignon")
+                if COUNT == 1:
+                    X1 = TUPLE[1]
+                    Y1 = TUPLE[2]
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = TUPLE[1]
+                    Y2 = TUPLE[2]
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_pignon_m(X1,Y1,X2,Y2)
+                    COUNT = 0
+            if window.option == 71:
+                print("Pignon")
+                if COUNT == 1:
+                    X1 = X
+                    Y1 = Y
+                    print("X1:" + str(X1) + " Y1:" + str(Y1))
+                if COUNT >= 2:
+                    X2 = X
+                    Y2 = Y
+                    print("X2:" + str(X1) + " Y2:" + str(Y1))
+                    cannevas().crea_pignon_z(X1, Y1, X2, Y2)
+                    COUNT = 0
+
+    def clic2(event):
+        X = event.widget.canvasx(event.x)
+        Y = event.widget.canvasy(event.y)
+        ID = can.find_closest(X, Y)
+        print(ID)
+        if not ID:
+            print("pas d'objet trouvé'")
+        else:
+            TAG = can.gettags(ID[0])
+            print(TAG)
+            if TAG[0] != 'coo_pt':
+                print(TAG[0])
+                fOption = Toplevel()  # Popup -> Toplevel()
+                fOption.title('Options')
+                fOption.iconbitmap('C:/Users/Alexis/Pictures/CNC_2.ico')
+
+                global entree, entree2
+
+                if TAG[0] == 'arc':
+                    COO = can.coords(ID)
+                    MyWindow.cut_object(ID)
+                    NewID = can.create_oval(COO[0], COO[1], COO[2], COO[3], width=3, outline='red')
+                    newTag = "arc"
+                    OLD_TAG_2 = 'arc' + str(ID[0])
+                    NEW_TAG_2 = 'arc' + str(NewID)
+                    can.addtag_withtag(newTag, NewID)
+                    can.addtag_withtag(NEW_TAG_2, OLD_TAG_2)
+                    print("newTag : " + newTag)
+                    X_LEN = (COO[2] - COO[0])/2
+                    Y_LEN = (COO[3] - COO[1])/2
+                    print(X_LEN)
+                    print(Y_LEN)
+                    LEN = math.sqrt((2*X_LEN * X_LEN) + (2*Y_LEN * Y_LEN))
+                    print(LEN)
+                    LEN = round(LEN, 2)
+                    if COO[0] != COO[2]:
+                        ARG = round(math.atan(Y_LEN / X_LEN) * 360 / (2*math.pi),2)
+                        print(ARG)
+                    if COO[0] == COO[2]:
+                        ARG = 90
+                        print(ARG)
+                    etiquette = Label(fOption, text='Diam')
+                    etiquette.pack(padx=1, pady=1)
+                    entree = Entry(fOption, width=10)
+                    entree.pack(padx=1, pady=1)
+                    entree.insert(0,str(LEN))
+                    entree.focus_force()
+                    etiquette2 = Label(fOption, text='Angle')
+                    etiquette2.pack(padx=1, pady=1)
+                    entree2 = Entry(fOption, width=10)
+                    entree2.pack(padx=1, pady=1)
+                    entree2.insert(0,str(ARG))
+                    entree2.focus_force()
+
+                    ButtonResize = Button(fOption, text='Resize',
+                                          command=lambda: [CAN_TAB[FILE_NB-1].resize(NewID,NEW_TAG_2), CAN_TAB[FILE_NB-1].deselection(NewID), fOption.destroy()])
+                    ButtonResize.pack(padx=5, pady=5, side=LEFT)
+                    ButtonCut = Button(fOption, text='Couper',
+                                       command=lambda: [MyWindow.cut_object(NewID), fOption.destroy()])
+                    ButtonCut.pack(padx=5, pady=5, side=LEFT)
+
+                if TAG[0] == 'rect':
+                    COO = can.coords(ID)
+                    MyWindow.cut_object(ID)
+                    NewID = can.create_rectangle(COO[0], COO[1], COO[2], COO[3], width=3, outline='red')
+                    newTag = "rect"
+                    can.addtag_withtag(newTag, NewID)
+                    can.addtag_withtag("rect" + str(NewID), "rect" + str(ID[0]))
+                    print("newTag : " + newTag)
+                    ButtonCut = Button(fOption, text='Couper',
+                                       command=lambda: [MyWindow.cut_object(NewID), fOption.destroy()])
+                    ButtonCut.pack(padx=1, pady=1)
+                    ButtonResize = Button(fOption, text='Resize',
+                                          command=lambda: [CAN_TAB[FILE_NB-1].resize(NewID), CAN_TAB[FILE_NB-1].deselection(NewID), fOption.destroy()])
+                    ButtonResize.pack(padx=1, pady=1)
+                    #text = Text(fOption, height=10, width=10)
+                    #text.insert(INSERT, "hello...")
+
+                if TAG[0] == 'obj_pt':
+                    can.delete('obj_pt')
+                    ID2 = can.find_closest(X, Y)
+                    can.itemconfigure(ID2, fill='red')
+                    ButtonCut = Button(fOption, text='Couper',
+                                       command=lambda: [MyWindow.cut_object(ID2[0]), fOption.destroy()])
+                    ButtonCut.pack(padx=1, pady=1)
+                    ButtonResize = Button(fOption, text='Resize',
+                                          command=lambda: [CAN_TAB[FILE_NB-1].resize(ID2[0]), CAN_TAB[FILE_NB-1].deselection(ID2[0]), fOption.destroy()])
+                    ButtonResize.pack(padx=1, pady=1)
+                    #text = Text(fOption, height=10, width=10)
+                    #text.insert(INSERT, "hello...")
+
+                if TAG[0] == 'sgmt':
+                    can.itemconfigure(ID, fill='red')
+                    ButtonCut = Button(fOption, text='Couper',
+                                       command=lambda: [MyWindow.cut_object(ID[0]), fOption.destroy()])
+                    ButtonCut.pack(padx=1, pady=1)
+                    ButtonResize = Button(fOption, text='Resize',
+                                          command=lambda: [CAN_TAB[FILE_NB-1].resize(ID[0]), CAN_TAB[FILE_NB-1].deselection(ID[0]), fOption.destroy()])
+                    ButtonResize.pack(padx=1, pady=1)
+                    #text = Text(fOption, height=10, width=10)
+                    #text.insert(INSERT, "hello...")
+
+                if TAG[0] == 'pign':
+                    can.itemconfigure('pign'+str(ID[0]), fill='red')
+                    ButtonCut = Button(fOption, text='Couper',
+                                       command=lambda: [MyWindow.cut_object('pign'+str(ID[0])),MyWindow.cut_object(ID[0]), fOption.destroy()])
+                    ButtonCut.pack(padx=1, pady=1)
+                    ButtonResize = Button(fOption, text='Resize',
+                                          command=lambda: [CAN_TAB[FILE_NB-1].resize('pign'+str(ID[0])), CAN_TAB[FILE_NB-1].deselection(ID[0]),
+                                                           fOption.destroy()])
+                    ButtonResize.pack(padx=1, pady=1)
+
+                fOption.transient(window)  # Réduction popup impossible
+                fOption.grab_set()  # Interaction avec fenetre jeu impossible
+                window.wait_window(fOption)  # Arrêt script principal
+
+    def resize(self,ID,TAG_2):
+        global entree, entree2
+        TAG = can.gettags(ID)
+        print(TAG)
+        COO_1 = can.coords(TAG[0])
+        COO_2 = can.coords(TAG_2)
+        print(COO_2)
+        if TAG[0] == 'arc':
+            DIAM = entree.get()
+            DIAM2 = round(float(DIAM),2)
+            ARG = entree2.get()
+            ARG2 = round(2*math.pi*float(ARG)/360,2)
+            print('diam: ' + str(DIAM))
+            print('mod en rad: ' + str(ARG2))
+            NEW_X2 = COO_2[0] + DIAM2*math.cos(ARG2)
+            print(NEW_X2)
+            NEW_Y2 = COO_2[1] + DIAM2*math.sin(ARG2)
+            print(NEW_Y2)
+            MyWindow.cut_object(ID)
+            CAN_TAB[FILE_NB-1].crea_circle_diam(COO_2[0],COO_2[1],NEW_X2,NEW_Y2,'blue')
+        else:
+            print('nothing')
+        #zoneSaisie = entree.get()
+        #print('New length: ' + zoneSaisie)
+
+    def deselection(self, ID):
+        TAG = can.gettags(ID)
+        print(TAG)
+        if TAG[0] == 'arc':
+            COO = can.coords(ID)
+            can.delete(ID)
+            NewID = can.create_oval(COO[0],COO[1],COO[2],COO[3],width=3,outline='blue')
+            newTag = "arc"
+            OLD_TAG_2 = 'arc' + str(ID)
+            NEW_TAG_2 = 'arc' + str(NewID)
+            can.addtag_withtag(newTag, NewID)
+            can.addtag_withtag(NEW_TAG_2, OLD_TAG_2)
+
+        else:
+            can.itemconfigure(ID, fill='blue')
+
+
+window.mainloop()
